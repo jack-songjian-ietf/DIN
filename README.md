@@ -1,0 +1,2 @@
+# DIN
+Distributed Inference Network
