@@ -6,10 +6,10 @@ abbrev: "DIN: Problem, Use Cases, Requirements"
 lang: en
 category: info
 
-docname: draft-song-rtgwg-din-usecases-requirements-00
+docname: draft-song-rtgwg-din-usecases-requirements-01
 submissiontype: IETF
 number:
-date: 2025
+date: 2026
 consensus: true
 v: 3
 workgroup: rtgwg
@@ -21,9 +21,11 @@ author:
  - name: Song Jian
    organization: China Mobile
    email: songjianyjy@chinamobile.com
+   country: China
  - name: Weiqiang Cheng
    org: China Mobile
    email: chengweiqiang@chinamobile.com
+   country: China
 
 normative:  # list the referenced RFC's   RFC9800
 
@@ -54,6 +56,8 @@ Third, AI inference workloads introduce distinct traffic characteristics that im
 
 Both north-south traffic between users and AI services, and east-west traffic among distributed AI components, are growing significantly. Moreover, the nature of AI inference communication, often organized around token generation and processing, introduces new considerations for traffic management, quality of service measurement, and resource optimization that complement traditional bit-oriented network metrics.
 
+In addition, AI agents are autonomous, goal-driven entities that can perceive their environment, make decisions, and execute actions. AI agents communicate with each other and with models/tools, requiring not only inference but also coordination, state management, and dynamic discovery. This further stresses the network infrastructure and is considered within the scope of this document.
+
 These developments collectively challenge current network infrastructures to adapt to the unique characteristics of AI inference workloads. Centralized approaches face limitations in supporting the distributed, latency-sensitive, and concurrent nature of modern AI services, particularly in scenarios requiring real-time performance, data privacy, and reliable service delivery.
 
 This document outlines the problem statement, use cases, and functional requirements for a Distributed Inference Network (DIN) to enable scalable, efficient, and secure AI inference services that can address these emerging challenges.
@@ -75,9 +79,9 @@ While human-to-model conversations may tolerate moderate network latency, the em
 
 Applications including industrial robots, autonomous systems, and real-time control platforms require low-latency responses that are fundamentally constrained by the unavoidable geographical dispersion between end devices and centralized inference facilities. This architectural limitation creates critical barriers for delay-sensitive operations across manufacturing, healthcare, transportation, and other domains where millisecond to sub-millisecond-level response times are essential.
 
-Enterprise and industrial AI inference scenarios present unique security and compliance requirements that fundamentally conflict with centralized architectural approaches. 
+Enterprise and industrial AI inference scenarios present unique security and compliance requirements. Centralized architectures introduce risks such as single points of failure (e.g., vulnerable to DDoS/APT attacks) and raise data sovereignty concerns when sensitive data must traverse long distances to centralized inference pools. Sectors including finance, healthcare, and public services often mandate localized processing to comply with regulations. However, distributed architectures also introduce their own security challenges: a larger attack surface, potential for model extraction or data leakage from intermediate nodes, and the need for trust among distributed components. The Distributed Inference Network (DIN) aims to address these by providing mechanisms for secure, verifiable inference within a trusted perimeter while enabling the benefits of distribution. 
 
-Sectors including finance, healthcare, and public service sectors handle sensitive data subject to strict regulatory requirements that often mandate localized processing and data sovereignty. The transmission of confidential information, model parameters, and intermediate computational data across extended network paths to centralized inference pools creates unacceptable vulnerabilities and compliance violations. These fundamental constraints render centralized inference architectures unsuitable for numerous critical applications where data sovereignty, privacy protection, and regulatory compliance represent non-negotiable requirements.
+The rise of AI agents adds new dimensions: agents may be created, migrated, or terminated dynamically, requiring the network to support agent identity, discovery, and stateful communication across distributed nodes. Current networks lack the necessary abstractions to handle agent-scale dynamics.
 
 
 
@@ -121,6 +125,10 @@ For applications requiring strict data privacy compliance, model partitioning te
 The network should support efficient transmission of intermediate computational results between edge and cloud with predictable performance characteristics to maintain inference pipeline continuity. Challenges include maintaining inference quality despite network variations, managing computational dependencies across distributed nodes, and ensuring end-to-end security while maximizing resource utilization efficiency across the partitioned model architecture.
 
 
+## AI Agent Inference Services
+AI agents are autonomous software entities that combine AI inference with decision-making and inter-agent communication. They can be deployed in various forms, including software agents running on user devices (e.g., smartphones, PCs), or embedded agents in IoT devices and robots. These agents interact not only with each other in multi-agent systems, but also with various tools, APIs, existing applications, web services, and software through function calling or other mechanisms. Additionally, human-agent interaction remains essential, particularly when agents require human confirmation for critical decisions. This diverse interaction landscape spans a wide range of applications, including personal scheduling, smart home automation, industrial process control, and real-time monitoring.
+
+Unlike human-AI conversations, which may tolerate moderate latency, the communication between agents and tools or between agents themselves often demands extremely low latency to ensure timely execution of tasks. The network should therefore provide deterministic, low-latency connectivity for these machine-to-machine interactions, while also supporting dynamic agent discovery, seamless migration of agents across locations (e.g., from a mobile device to edge), and efficient coordination among distributed agents with reliable and secure interactions. Furthermore, as agents may be ephemeral or long-lived, the network needs to handle rapid creation and termination of agent sessions without impacting ongoing services.
 
 
 # Requirements
@@ -135,11 +143,11 @@ AI inference workloads require consistent and predictable network performance to
 
 ## Security and Privacy Requirements
 
-Comprehensive security mechanisms should protect AI models, parameters, and data throughout their transmission across network links. Cryptographic protection should extend to physical layer transmissions without introducing significant overhead or latency degradation. Privacy-preserving techniques should prevent leakage of sensitive information through intermediate representations while supporting efficient distributed inference.
+Comprehensive security mechanisms should protect AI models, parameters, and data throughout their transmission across network links. Cryptographic protection should be applied at appropriate layers (e.g., network, transport, or application) depending on the deployment scenario, with key management and authentication integrated. Privacy-preserving techniques should prevent leakage of sensitive information through intermediate representations while supporting efficient distributed inference.
 
 ## Identification and Scheduling Requirements
 
-The network should support fine-grained identification of inference workloads to enable appropriate resource allocation and path selection. Application-aware networking capabilities should allow inference requests to be steered to optimal endpoints based on current load, network conditions, and computational requirements. Both centralized and distributed scheduling approaches should be supported to accommodate different deployment scenarios and organizational preferences.
+The network should support fine-grained identification of inference workloads to enable appropriate resource allocation and path selection. Application-aware networking capabilities should allow inference requests to be steered to optimal endpoints based on current load, network conditions, and computational requirements. These identifiers, such as agent ID, workflow ID, or job ID, are typically defined by the application. Similar to DNS maps URL to IP address, the network may need to map applicaiton layer name or id to network-layer addresses or labels, and to enable efficient resource routing and orchestration. The network should also support agent registration, discovery, and stateful handover across distributed nodes. Both centralized and distributed scheduling approaches should be supported to accommodate different deployment scenarios and organizational preferences.
 
 ## Management and Observability Requirements
 
@@ -148,7 +156,9 @@ The network should provide comprehensive telemetry for performance monitoring, f
 
 # Security Considerations
 
-This document highlights security as a fundamental requirement for DIN. The distributed nature of inference workloads creates new attack vectors including model extraction, data reconstruction from intermediate outputs, and adversarial manipulation of inference results. Security mechanisms should operate at multiple layers while maintaining the performance characteristics necessary for efficient inference. Physical layer encryption techniques show promise for protecting transmissions without the overhead of traditional cryptographic approaches.
+This document highlights security as a fundamental requirement for DIN. The distributed nature of inference workloads creates new attack vectors including model extraction, data reconstruction from intermediate outputs, and adversarial manipulation of inference results. Security mechanisms should operate at multiple layers while maintaining the performance characteristics necessary for efficient inference.
+
+Compared to centralized architectures, distributed inference increases the attack surface but also enables localized processing that can reduce data exposure. The DIN should provide mechanisms to establish trust among nodes, such as attestation and secure key distribution.
 
 
 # IANA Considerations
@@ -161,5 +171,5 @@ This document has no IANA actions.
 # Acknowledgments
 {:numbered="false"}
 
-The authors would like to thank the contributors from China Mobile Research Institute for their valuable inputs and discussions.
+The authors would like to thank the contributors from China Mobile Research Institute for their valuable inputs and discussions. 
 

@@ -3,6 +3,13 @@ This document [https://datatracker.ietf.org/doc/draft-song-rtgwg-din-usecases-re
 
 -----
  # Update
+ 2026-02-27
+· update to .01 version, 
+  - add ai agent description in Introduction part, 
+  - modify security requirements description in Problem Statement part
+  - add new AI Agent Inference Services use case
+
+
  2025-11-12
 · add I-D draft document
 · add the sides presented at IETF124 
