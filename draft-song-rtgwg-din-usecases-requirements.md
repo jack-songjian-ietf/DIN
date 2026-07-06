@@ -6,7 +6,7 @@ abbrev: "DIN: Problem, Use Cases, Requirements"
 lang: en
 category: info
 
-docname: draft-song-rtgwg-din-usecases-requirements-01
+docname: draft-song-rtgwg-din-usecases-requirements-02
 submissiontype: IETF
 number:
 date: 2026
@@ -120,9 +120,11 @@ The network infrastructure should support dynamic workload distribution, intelli
 
 
 ## Privacy-Preserving Split Inference
-For applications requiring strict data privacy compliance, model partitioning techniques enable sensitive computational layers to execute on-premises while utilizing cloud resources for non-sensitive operations. This approach is particularly relevant for applications processing personal identifiable information, healthcare records, financial data, or proprietary business information subject to regulatory constraints. 
+Sectors with stringent data privacy regulations, such as healthcare, finance, and government, require robust mechanisms to protect sensitive information while leveraging the power of large AI models. In this use case, data sovereignty is paramount: raw data such as patient records, financial transactions, or classified documents cannot leave the organization's premises. However, these organizations often lack the elastic computing resources needed to run large-scale foundation models on-premises.
 
-The network should support efficient transmission of intermediate computational results between edge and cloud with predictable performance characteristics to maintain inference pipeline continuity. Challenges include maintaining inference quality despite network variations, managing computational dependencies across distributed nodes, and ensuring end-to-end security while maximizing resource utilization efficiency across the partitioned model architecture.
+A layered split inference architecture addresses this challenge by partitioning the model across the edge and cloud. The embedding layer and the last few layers are deployed on-premises, while intermediate layers are hosted in the cloud. The user's prompt is processed locally, and intermediate activations (hidden variables) are transmitted to the cloud for further computation. The final token generation occurs on-premises, ensuring that raw data never leaves the secure perimeter. This approach not only satisfies data sovereignty and compliance requirements but also enhances model security, as only partial model layers are exposed to the cloud, preventing full model reconstruction. Furthermore, it allows organizations to scale their inference capacity elastically by leveraging cloud resources during demand peaks, overcoming the physical constraints of on-premises infrastructure.
+
+The network connecting the on-premises and cloud nodes must provide deterministic low-latency and high-bandwidth connectivity for transmitting hidden variables, as delays directly impact the user experience in clinical, financial, or governmental settings. Robust security mechanisms are essential to protect these intermediate representations from eavesdropping and tampering during transmission.
 
 
 ## AI Agent Inference Services
@@ -131,27 +133,46 @@ AI agents are autonomous software entities that combine AI inference with decisi
 Unlike human-AI conversations, which may tolerate moderate latency, the communication between agents and tools or between agents themselves often demands extremely low latency to ensure timely execution of tasks. The network should therefore provide deterministic, low-latency connectivity for these machine-to-machine interactions, while also supporting dynamic agent discovery, seamless migration of agents across locations (e.g., from a mobile device to edge), and efficient coordination among distributed agents with reliable and secure interactions. Furthermore, as agents may be ephemeral or long-lived, the network needs to handle rapid creation and termination of agent sessions without impacting ongoing services.
 
 
+## Heterogeneous Agent Interworking Gateway
+
+The growing deployment of AI agents in various environments, from smart homes and enterprises to industrial IoT, has created a significant interoperability challenge. Devices and agents from different vendors often operate on proprietary protocols and lack standard communication interfaces, hindering seamless collaboration. While initiatives such as OpenClaw or Hermes exist to address this, they often require high performance hardware and complex configuration, limiting their widespread adoption.
+
+In this use case, a gateway or edge node functions as a local broker for heterogeneous AI agents. This gateway provides a unified interface for agents from different vendors to register, discover, and communicate with each other and with external services. For instance, in a smart home, a user could issue a single command to the gateway to orchestrate actions across lighting, security, and entertainment systems from multiple brands. In an enterprise, such a gateway could coordinate various AI-powered monitoring and response agents.
+
+This gateway should be deployed at the network edge (e.g., residential gateway, BRAS, enterprise edge) to minimize latency for inter-agent communication and to keep sensitive data local. The gateway should be simple to set up, configure, and maintain, particularly for non-technical users. It should not require the purchase of specialized high performance gateway hardware or the installation of complex gateway software. The onboarding process for new agents should be intuitive and require minimal user intervention, ensuring broad accessibility and ease of deployment in home and small-office environments. By providing vendor-agnostic discovery and messaging standards, the gateway enables a plug-and-play ecosystem for AI agents, fostering innovation and improving user experience.
+
+
 # Requirements
 
 ## Scalability and Elasticity Requirements
 
-Distributed Inference Network should support seamless scaling to accommodate billions of concurrent inference sessions while maintaining consistent performance levels. The network should provide mechanisms for dynamic discovery and integration of new inference nodes, with automatic load distribution across available resources. Elastic scaling should respond to diurnal patterns and sudden demand spikes without service disruption.
+Distributed Inference Network should support seamless scaling to accommodate billions of concurrent inference sessions while maintaining consistent performance levels. The network should provide mechanisms for dynamic discovery and integration of new inference nodes, with automatic load distribution across available resources. Elastic scaling should respond to diurnal patterns and sudden demand spikes without service disruption. As AI agents can be created, migrated, or terminated dynamically, the network should support rapid provisioning and release of network resources associated with agent lifecycles.
 
 ## Performance and Determinism Requirements
 
 AI inference workloads require consistent and predictable network performance to ensure reliable service delivery. The network should provide strict Service Level Agreement (SLA) guarantees for latency, jitter, and packet loss to support various distributed inference scenarios. Bandwidth provisioning should accommodate bursty traffic patterns characteristic of model parameter exchanges and intermediate data synchronization, with performance isolation between different inference workloads.
 
+In distributed inference scenarios where model layers are partitioned across on-premises and cloud nodes, the network should provide low-latency and high-bandwidth connectivity to ensure timely transmission of intermediate activations. Additionally, for scenarios involving communication between distributed agents or between agents and tools, the network should enable low-latency communication channels that prefer local processing at the edge to minimize round-trip delays.
+
 ## Security and Privacy Requirements
 
 Comprehensive security mechanisms should protect AI models, parameters, and data throughout their transmission across network links. Cryptographic protection should be applied at appropriate layers (e.g., network, transport, or application) depending on the deployment scenario, with key management and authentication integrated. Privacy-preserving techniques should prevent leakage of sensitive information through intermediate representations while supporting efficient distributed inference.
 
+When model partitioning is used to keep raw data on-premises, security mechanisms MUST protect intermediate computational results exchanged between edge and cloud nodes from eavesdropping and tampering. Gateways that coordinate communication between heterogeneous agents should enforce access control policies to ensure that only authenticated and authorized agents can join the network and access services. The network should also provide mechanisms to support agent identity verification and policy enforcement at the edge.
+
 ## Identification and Scheduling Requirements
 
-The network should support fine-grained identification of inference workloads to enable appropriate resource allocation and path selection. Application-aware networking capabilities should allow inference requests to be steered to optimal endpoints based on current load, network conditions, and computational requirements. These identifiers, such as agent ID, workflow ID, or job ID, are typically defined by the application. Similar to DNS maps URL to IP address, the network may need to map applicaiton layer name or id to network-layer addresses or labels, and to enable efficient resource routing and orchestration. The network should also support agent registration, discovery, and stateful handover across distributed nodes. Both centralized and distributed scheduling approaches should be supported to accommodate different deployment scenarios and organizational preferences.
+The network should support fine-grained identification of inference workloads to enable appropriate resource allocation and path selection. Application-aware networking capabilities should allow inference requests to be steered to optimal endpoints based on current load, network conditions, and computational requirements. These identifiers, such as agent ID, workflow ID, or job ID, are typically defined by the application. Similar to DNS maps URL to IP address, the network may need to map application layer name or id to network-layer addresses or labels, and to enable efficient resource routing and orchestration. The network should also support agent registration, discovery, and stateful handover across distributed nodes. Both centralized and distributed scheduling approaches should be supported to accommodate different deployment scenarios and organizational preferences.
 
 ## Management and Observability Requirements
 
-The network should provide comprehensive telemetry for performance monitoring, fault detection, and capacity planning. Metrics should include inference-specific measurements such as token latency, throughput, and computational efficiency in addition to traditional network performance indicators. Management interfaces should support automated optimization and troubleshooting across the combined compute-network infrastructure.
+The network should provide comprehensive telemetry for performance monitoring, fault detection, and capacity planning. Metrics should include inference-specific measurements such as token latency, throughput, and computational efficiency in addition to traditional network performance indicators. Management interfaces should support automated optimization and troubleshooting across the combined compute-network infrastructure. The management system should also support the lifecycle management of AI agents, including registration, de-registration, health monitoring, and graceful shutdown, to adapt to the dynamic nature of agent-based applications.
+
+
+## Authentication, Authorization, and Accounting (AAA) for Distributed Inference and Agents
+The distributed nature of DIN, particularly the proliferation of AI agents and diverse inference workloads, introduces a critical need for robust Authentication, Authorization, and Accounting (AAA) mechanisms. This requirement is analogous to the role of AAA in residential broadband networks, where subscribers are authenticated, authorized based on their subscription, and subject to per-session accounting and traffic policies. However, traditional AAA operates at the level of the subscriber and does not authenticate individual applications or agents running within that subscriber's network, nor does it provide granular authorization for AI inference services.
+
+In the context of DIN, the network should support agent-level AAA. Each agent or inference workload should have a unique identity that is cryptographically verified before it can access network resources or inference services. This enables granular access control, usage accounting and billing, and enhanced security and trust. The AAA framework should be implemented via a trust anchor at the edge (e.g., residential gateway, enterprise edge) that authenticates agents using credentials (e.g., certificates, API keys) and communicates with a central AAA server that authorizes service access. The network should provide interfaces for agents to present their credentials and for the edge node to enforce policies based on the AAA outcome. The system should also support the management of agent identities throughout their lifecycle, including provisioning, suspension, and revocation.
 
 
 # Security Considerations

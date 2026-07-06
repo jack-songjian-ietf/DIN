@@ -3,6 +3,13 @@ This document [https://datatracker.ietf.org/doc/draft-song-rtgwg-din-usecases-re
 
 -----
  # Update
+ 2026-07-06
+· update to .02 version,
+ - add Heterogeneous Agent Interworking Gateway in use case
+ - add AAA requirement
+ - update the descrptions in split inference
+ 
+
  2026-02-27
 · update to .01 version, 
   - add ai agent description in Introduction part, 
